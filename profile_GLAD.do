@@ -48,7 +48,11 @@ qui {
   }
   * Joao Pedro II
   else if inlist("`c(username)'","azeve") {
-    global clone   "C:/GitHub_mytasks/GLAD"
+    global clone   "C:/GitHub/mytasks/GLAD"
+  }
+  * Joao Pedro III
+  else if inlist("`c(username)'","jpazevedo") {
+    global clone   "C:/GitHub/mytasks/GLAD"
   }
   * Natasha
   else if inlist("`c(username)'","wb419051","WB419051") {
@@ -112,8 +116,42 @@ qui {
   *-----------------------------------------------------------------------------
   * Make time-saving offers to user, requesting confirmation
   *-----------------------------------------------------------------------------
-  * Offer to use a datalibweb shortcut (without manually typing it in the do files)
-  noi di as txt _newline "{pstd}If you have a shortcut to query datalibweb enabled in your machine, please type your shortcut passcode and hit enter. In case you do not, simply hit enter without typing anything. Typing an invalid shortcut may cause the datalibweb queries to break.{p_end}", _request(shortcut_GLAD)
+  * Check for batch mode or command-line options to skip interactive prompts
+  * Usage: do profile_GLAD.do [/s | /h | /p | /b]
+  *   /s = silent (skip prompts)
+  *   /h = headless (skip prompts)  
+  *   /p = programmatic (skip prompts)
+  *   /b = batch (skip prompts)
+  * Also auto-skips if running in actual batch mode
+  
+  local skip_prompt = 0
+  
+  * Check if any skip flag was passed as argument
+  if inlist("`0'", "/s", "/h", "/p", "/b", "-s", "-h", "-p", "-b") {
+    local skip_prompt = 1
+  }
+  
+  * Check if running in batch mode
+  if "`c(mode)'" == "batch" {
+    local skip_prompt = 1
+  }
+  
+  * Check if shortcut_GLAD is already defined (allows pre-setting)
+  if `"${shortcut_GLAD}"' != "" {
+    local skip_prompt = 1
+  }
+  
+  if `skip_prompt' == 0 {
+    * Offer to use a datalibweb shortcut (without manually typing it in the do files)
+    noi di as txt _newline "{pstd}If you have a shortcut to query datalibweb enabled in your machine, please type your shortcut passcode and hit enter. In case you do not, simply hit enter without typing anything. Typing an invalid shortcut may cause the datalibweb queries to break.{p_end}", _request(shortcut_GLAD)
+  }
+  else {
+    * In batch/silent mode, use empty shortcut if not pre-defined
+    if `"${shortcut_GLAD}"' == "" {
+      global shortcut_GLAD ""
+    }
+    noi di as txt _newline "{pstd}Running in batch/silent mode - skipping datalibweb shortcut prompt.{p_end}"
+  }
   *-----------------------------------------------------------------------------
 
 
